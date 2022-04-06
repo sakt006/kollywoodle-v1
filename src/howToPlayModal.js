@@ -6,7 +6,7 @@ import Modal from "@mui/material/Modal";
 import { Divider, IconButton } from "@mui/material";
 import HelpRoundedIcon from "@mui/icons-material/HelpRounded";
 import CardMedia from "@mui/material/CardMedia";
-import example from "../static/images/example.png";
+import example from "./example.png";
 
 const style = {
   position: "absolute",
