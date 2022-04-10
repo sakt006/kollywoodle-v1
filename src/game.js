@@ -3,6 +3,7 @@ import Guess2 from "./guess2";
 import { MOVIE_LIST } from "./movieData";
 import seedrandom from "seedrandom";
 import { Collapse } from "@mui/material";
+import ShareModal from "./shareModal";
 
 const maxGuess = 10;
 
@@ -14,6 +15,7 @@ export default class MovieGame extends Component {
     let rng = seedrandom(isoDateString);
     this.winner = MOVIE_LIST[Math.floor(rng() * MOVIE_LIST.length)];
     this.handleClick = this.handleClick.bind(this);
+    this.handleShareModalClose = this.handleShareModalClose.bind(this);
     let disabledArray = Array(maxGuess).fill(true);
     disabledArray[0] = false;
 
@@ -26,7 +28,9 @@ export default class MovieGame extends Component {
       actorMatch: Array(maxGuess).fill(false),
       yearMatch: Array(maxGuess).fill(false),
       musicMatch: Array(maxGuess).fill(false),
-      gameWon: false
+      gameWon: false,
+      isShareModalOpen: false,
+      gameLost: false
     };
 
     // this.addToGuessList(0);
@@ -42,6 +46,8 @@ export default class MovieGame extends Component {
     const yearMatch = this.state.yearMatch.slice();
     const musicMatch = this.state.musicMatch.slice();
     let gameWon = this.state.gameWon;
+    let showShareModal = this.state.isShareModalOpen;
+    let gameLost = this.state.gameLost;
 
     let currentGuess = this.state.currentGuess;
 
@@ -59,11 +65,17 @@ export default class MovieGame extends Component {
     }
 
     if (!gameWon) {
-      currentGuess = currentGuess + 1;
-      disabled[currentGuess] = false;
+      if (this.isGameLost(currentGuess + 1)) {
+        gameLost = true;
+      } else {
+        currentGuess = currentGuess + 1;
+        disabled[currentGuess] = false;
+      }
     }
 
-    // this.addToGuessList(currentGuess);
+    if (gameWon || gameLost) {
+      showShareModal = true;
+    }
 
     this.setState({
       guesses: guesses,
@@ -73,7 +85,9 @@ export default class MovieGame extends Component {
       actorMatch: actorMatch,
       yearMatch: yearMatch,
       musicMatch: musicMatch,
-      gameWon: gameWon
+      gameWon: gameWon,
+      isShareModalOpen: showShareModal,
+      gameLost: gameLost
     });
   }
 
@@ -83,15 +97,6 @@ export default class MovieGame extends Component {
       guessList.push(this.renderGuess(i));
     }
     return guessList;
-  }
-
-  addToGuessList(i) {
-    let guessList = this.state.guessList.slice();
-    guessList.push(this.renderGuess(i));
-
-    this.setState({
-      guessList: guessList
-    });
   }
 
   renderGuess(i) {
@@ -115,19 +120,33 @@ export default class MovieGame extends Component {
   }
 
   render() {
-    let status =
-      this.state.currentGuess >= maxGuess
-        ? "Game Over!"
-        : this.state.gameWon
-        ? "You won in " + parseInt(this.state.currentGuess + 1) + " guesses"
-        : "";
+    let status = this.state.gameLost
+      ? "Game Over! Today's movie was : " + this.winner["title"]
+      : this.state.gameWon
+      ? "You won in " + parseInt(this.state.currentGuess + 1) + " guess(es)"
+      : "";
 
     return (
       <div>
         <div className="board-row">{this.buildGuessList(maxGuess)}</div>
-        <div className="status">{status}</div>
+        {/* <div className="status">{status}</div> */}
+        <ShareModal
+          open={this.state.isShareModalOpen}
+          status={status}
+          handleShareModalClose={this.handleShareModalClose}
+          directorMatch={this.state.directorMatch}
+          actorMatch={this.state.actorMatch}
+          yearMatch={this.state.yearMatch}
+          musicMatch={this.state.musicMatch}
+          currentGuess={this.state.currentGuess}
+          gameWon={this.state.gameWon}
+        />
       </div>
     );
+  }
+
+  handleShareModalClose() {
+    this.setState({ isShareModalOpen: false });
   }
 
   calculateWinner(value) {
@@ -135,5 +154,9 @@ export default class MovieGame extends Component {
       return true;
     }
     return null;
+  }
+
+  isGameLost(currentGuess) {
+    return currentGuess >= maxGuess;
   }
 }

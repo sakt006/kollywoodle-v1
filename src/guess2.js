@@ -33,7 +33,6 @@ export default function Guess2(props) {
           // size="small"
           autoHighlight={false}
           disablePortal
-          onO
           blurOnSelect="touch"
           // sx={{ minWidth: 450 }}
           disabled={props.disabled}
